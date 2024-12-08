@@ -3,7 +3,7 @@ import { Header, Content } from "antd/es/layout/layout"
 import Title from "antd/es/typography/Title";
 import { styled } from "styled-components";
 import { useWindowSizeContext } from "../utils/useWindowSize";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreateModal from "./CreateModal";
 import IssueCard from "./Issue";
 import { ColumnType, Issue } from "../utils/Interfaces";
@@ -20,7 +20,8 @@ const Board: React.FC = () => {
   const { token } = theme.useToken();
   const [open, setOpen] = useState(false);
   const { width, height } = useWindowSizeContext();
-  const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
+  const [maxColumnHeight, setMaxColumnHeight] = useState<number>(0);
+
 
   const [columns, setColumns] = useState<ColumnType[]>([
     {
@@ -57,6 +58,17 @@ const Board: React.FC = () => {
     }
   ])
 
+
+  useEffect(() => {
+    // Calculate max tasks height across all columns
+    const maxTasks = Math.max(
+      ...columns.map((col) => issues.filter((issue) => issue.status === col.id).length)
+    );
+
+    // Set a height dynamically based on the max number of tasks
+    setMaxColumnHeight(Math.max(maxTasks * 135, height*0.7)); // Assume 100px per task (adjust based on task size)
+  }, [columns, issues, height]);
+
   const addIssue = (newIssue: Issue) => {
     setIssues([...issues, newIssue]);
   };
@@ -73,13 +85,7 @@ const Board: React.FC = () => {
       ...issue, status: newStatus
     } : issue))
 
-    setActiveIssue(null);
   }
-
-  const handleDragStart = (e: any) => {
-    const issue = issues.find((issue) => issue.id === e.active.id);
-    setActiveIssue(issue || null);
-  };
 
   return (
     <Layout>
@@ -101,14 +107,15 @@ const Board: React.FC = () => {
         </Space>
       </Header>
 
-      <Content style={{ padding: "40px", alignItems: 'center', background: "#fff", }}>
+      <Content style={{ padding: "40px", alignItems: 'center', background: "#fff", height: height*3, overflowY: 'auto'}}>
         <DndContext modifiers={[restrictToWindowEdges]} onDragEnd={handleDragEnd}>
-          <Space size="small" style={{ display: 'flex', justifyContent: 'center' }}>
+          <Space size="small" style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch' }}>
             {columns.map((column) => (
               <Column
                 key={column.id}
                 column={column}
                 issues={issues.filter((issue) => issue.status === column.id)}
+                colHeight={maxColumnHeight}
               />
             ))}
           </Space>

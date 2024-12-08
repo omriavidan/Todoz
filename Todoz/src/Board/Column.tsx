@@ -9,6 +9,7 @@ import IssueCard from './Issue';
 type ColumnProps = {
   column: ColumnType;
   issues: Issue[];
+  colHeight: number;
 };
 
 const TasksCol = styled(Col) <{ height: number, width: number, bgColor: string }>`
@@ -16,13 +17,13 @@ background-color: ${(props) => props.bgColor};
 padding-left: 10px;
 padding-right: 10px;
 padding-top: 0px;
-height: ${(props) => props.height * 0.7}px;
 width: ${(props) => props.width * 0.25}px;
-flex: 1; /* Allow column to grow equally */
-display: flex; /* Ensure column content respects flexbox rules */
-flex-direction: column; /* Stack children vertically */
-align-items: center; /* Center align horizontally */
-justify-content: flex-start; /* Align content at the top */
+height: ${(props) => props.height}px;
+flex: 1; 
+display: flex; 
+flex-direction: column; 
+align-items: center; 
+justify-content: flex-start; 
 `
 const TasksTitle = styled(Title)`
 text-align: center;
@@ -33,16 +34,17 @@ font-size: 20px;
 `;
 
 
-export function Column({ column, issues }: ColumnProps) {
+export function Column({ column, issues, colHeight }: ColumnProps) {
   const { token } = theme.useToken();
   const { width, height } = useWindowSizeContext();
   const colorBorderSecondary = token.colorBorderSecondary;
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
 
   return (
-    <TasksCol ref={setNodeRef} key={column.id} height={height} width={width} bgColor={colorBorderSecondary}>
+
+    <TasksCol ref={setNodeRef} key={column.id} height={colHeight} width={width} bgColor={colorBorderSecondary} >
       <TasksTitle level={5}>{column.title}</TasksTitle>
       {
         issues.map((issue) => (
